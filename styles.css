@@ -1,0 +1,494 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-color: #0f0f0f;
+    --wave-color-1: rgba(102, 126, 234, 0.15);
+    --wave-color-2: rgba(118, 75, 162, 0.12);
+    --wave-color-3: rgba(80, 60, 120, 0.08);
+    --text-color: #ffffff;
+    --text-secondary: #a0a0a0;
+    --card-bg: rgba(255, 255, 255, 0.05);
+    --card-border: rgba(255, 255, 255, 0.1);
+    --hitokoto-from: #888;
+    --cursor-color: #667eea;
+    --particle-color: rgba(102, 126, 234, 0.6);
+}
+
+body.light-mode {
+    --bg-color: #f8f9fc;
+    --wave-color-1: rgba(102, 126, 234, 0.25);
+    --wave-color-2: rgba(124, 58, 237, 0.2);
+    --wave-color-3: rgba(159, 122, 234, 0.15);
+    --text-color: #2d3748;
+    --text-secondary: #4a5568;
+    --card-bg: rgba(255, 255, 255, 0.7);
+    --card-border: rgba(0, 0, 0, 0.1);
+    --hitokoto-from: #718096;
+    --cursor-color: #5a67d8;
+    --particle-color: rgba(102, 126, 234, 0.4);
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: var(--bg-color);
+    min-height: 100vh;
+    color: var(--text-color);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+    transition: background 0.3s ease, color 0.3s ease;
+}
+
+/* 波浪背景装饰 */
+body::before,
+body::after {
+    content: '';
+    position: fixed;
+    left: 0;
+    right: 0;
+    pointer-events: none;
+    z-index: -1;
+}
+
+/* 第一层波浪 - 顶部 */
+body::before {
+    top: 0;
+    height: 100vh;
+    background: 
+        radial-gradient(ellipse 80% 50% at 50% -20%, var(--wave-color-1), transparent),
+        radial-gradient(ellipse 60% 40% at 20% 30%, var(--wave-color-2), transparent),
+        radial-gradient(ellipse 70% 45% at 80% 40%, var(--wave-color-3), transparent);
+}
+
+/* 第二层波浪 - 底部 */
+body::after {
+    bottom: 0;
+    height: 100vh;
+    background: 
+        radial-gradient(ellipse 80% 50% at 50% 120%, var(--wave-color-1), transparent),
+        radial-gradient(ellipse 60% 40% at 80% 70%, var(--wave-color-2), transparent),
+        radial-gradient(ellipse 70% 45% at 20% 60%, var(--wave-color-3), transparent);
+}
+
+/* 动画波浪层 */
+.wave-layer {
+    position: fixed;
+    width: 200%;
+    height: 200%;
+    pointer-events: none;
+    z-index: -1;
+    border-radius: 40%;
+    opacity: 0.5;
+}
+
+.wave-1 {
+    top: -50%;
+    left: -50%;
+    background: radial-gradient(ellipse at center, var(--wave-color-1), transparent 70%);
+    animation: wave-rotate 20s linear infinite;
+}
+
+.wave-2 {
+    top: -50%;
+    left: -50%;
+    background: radial-gradient(ellipse at center, var(--wave-color-2), transparent 60%);
+    animation: wave-rotate 25s linear infinite reverse;
+}
+
+.wave-3 {
+    top: -50%;
+    left: -50%;
+    background: radial-gradient(ellipse at center, var(--wave-color-3), transparent 50%);
+    animation: wave-rotate 30s linear infinite;
+}
+
+@keyframes wave-rotate {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.container {
+    width: 100%;
+    max-width: 800px;
+    text-align: center;
+}
+
+header {
+    margin-bottom: 40px;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+h1 {
+    font-size: 3.5rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #4c51bf 0%, #6b46c1 50%, #805ad5 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 15px;
+    letter-spacing: -1px;
+    transition: background 0.3s ease;
+}
+
+body.light-mode h1 {
+    background: linear-gradient(135deg, #5a67d8 0%, #7c3aed 50%, #9f7aea 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+}
+
+#user-bio {
+    font-size: 1.6rem;
+    color: var(--text-secondary);
+    max-width: 500px;
+    margin: 0 auto;
+    line-height: 1.6;
+    transition: color 0.3s ease;
+}
+
+.hitokoto-wrapper {
+    margin-top: 15px;
+    animation: fadeIn 1s ease-out 0.3s both;
+}
+
+#hitokoto-text {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-color);
+    margin-bottom: 8px;
+    font-weight: 400;
+    min-height: 1.8em;
+}
+
+/* 打字机效果样式 */
+.typewriter-text {
+    display: inline;
+}
+
+#hitokoto-from {
+    font-size: 0.8rem;
+    color: var(--hitokoto-from);
+    font-style: italic;
+    transition: color 0.3s ease;
+}
+
+.socials-section {
+    margin: 50px 0;
+    animation: fadeInUp 1s ease-out 0.5s both;
+}
+
+.socials-grid {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    flex-wrap: wrap;
+}
+
+.social-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+
+.social-link {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 70px;
+    height: 70px;
+    background: var(--card-bg);
+    border-radius: 16px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 1px solid var(--card-border);
+    position: relative;
+    overflow: hidden;
+}
+
+.social-name {
+    font-size: 0.7rem;
+    color: var(--text-secondary);
+    text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 80px;
+    transition: color 0.3s ease;
+}
+
+.social-wrapper:hover .social-name {
+    color: var(--text-color);
+}
+
+.social-link::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 0;
+}
+
+.social-link:hover::before {
+    opacity: 1;
+}
+
+.social-link:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+}
+
+body.light-mode .social-link:hover {
+    box-shadow: 0 10px 30px rgba(102, 126, 234, 0.4);
+}
+
+body:not(.light-mode) .social-wrapper:hover .social-name {
+    color: #ffffff;
+}
+
+body.light-mode .social-wrapper:hover .social-name {
+    color: var(--text-color);
+}
+
+.social-link svg {
+    width: 32px;
+    height: 32px;
+    fill: var(--text-color);
+    position: relative;
+    z-index: 1;
+    transition: transform 0.3s ease, fill 0.3s ease;
+}
+
+.social-link:hover svg {
+    fill: #ffffff;
+}
+
+.social-link:hover svg {
+    transform: scale(1.1);
+}
+
+.tooltip {
+    position: absolute;
+    bottom: -45px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.tooltip::before {
+    content: '';
+    position: absolute;
+    top: -5px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    border-bottom: 5px solid rgba(0, 0, 0, 0.8);
+}
+
+body.light-mode .tooltip {
+    background: rgba(0, 0, 0, 0.9);
+}
+
+body.light-mode .tooltip::before {
+    border-bottom-color: rgba(0, 0, 0, 0.9);
+}
+
+.social-link:hover .tooltip {
+    opacity: 1;
+    visibility: visible;
+    bottom: -50px;
+}
+
+footer {
+    margin-top: 60px;
+    padding: 20px;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    animation: fadeIn 1s ease-out 0.7s both;
+    transition: color 0.3s ease;
+}
+
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@media (max-width: 600px) {
+    h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hitokoto-card {
+        padding: 20px;
+    }
+    
+    #user-bio {
+        font-size: 1.3rem;
+    }
+    
+    #hitokoto-text {
+        font-size: 0.9rem;
+    }
+    
+    .social-link {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .social-link svg {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .social-name {
+        font-size: 0.65rem;
+        max-width: 70px;
+    }
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid rgba(128, 128, 128, 0.3);
+    border-radius: 50%;
+    border-top-color: #667eea;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 主题切换按钮 */
+.theme-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 1000;
+    color: var(--text-color);
+}
+
+.theme-toggle:hover {
+    transform: scale(1.1) rotate(15deg);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-color: transparent;
+}
+
+.theme-icon {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+}
+
+.theme-icon.hidden {
+    display: none;
+}
+
+.theme-toggle:hover .theme-icon {
+    transform: rotate(180deg);
+}
+
+/* 深色模式下显示月亮图标，浅色模式下显示太阳图标 */
+body:not(.light-mode) #sun-icon {
+    display: none;
+}
+
+body.light-mode #moon-icon {
+    display: none;
+}
+
+body:not(.light-mode) #moon-icon {
+    display: block;
+}
+
+body.light-mode #sun-icon {
+    display: block;
+}
+
+/* 粒子轨迹容器 */
+.particle-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 9999;
+    overflow: hidden;
+}
+
+/* 粒子样式 */
+.particle {
+    position: absolute;
+    border-radius: 50%;
+    background: var(--particle-color);
+    pointer-events: none;
+    box-shadow: 0 0 10px var(--particle-color);
+    transition: opacity 1s ease-out, transform 1s ease-out;
+}

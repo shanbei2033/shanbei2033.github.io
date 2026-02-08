@@ -1,0 +1,48 @@
+{
+  "title": "SB33 Tech Pages",
+  "name": "SB33",
+  "bio": "Vibe coding lover | Blogger",
+  "socials": [
+    {
+      "name": "X (Twitter)",
+      "icon": "x",
+      "url": "https://x.com/sea60988321",
+      "enabled": true
+    },
+    {
+      "name": "Telegram",
+      "icon": "telegram",
+      "url": "https://t.me/your_telegram_username",
+      "enabled": false
+    },
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/shanbei2033",
+      "enabled": true
+    },
+    {
+      "name": "Email",
+      "icon": "email",
+      "url": "mailto:lhb363363@foxmail.com",
+      "enabled": true
+    },
+    {
+      "name": "Blog",
+      "icon": "blog",
+      "url": "https://blog.sb33.tech",
+      "enabled": true
+    }
+  ],
+  "hitokoto": {
+    "enabled": true,
+    "mode": "local"
+  },
+  "theme": {
+    "mode": "dark",
+    "primaryColor": "#6366f1",
+    "backgroundColor": "#0f0f0f",
+    "cardBackground": "#1a1a1a",
+    "textColor": "#ffffff"
+  }
+}
