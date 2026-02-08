@@ -1,6 +1,61 @@
 // 配置文件路径
 const CONFIG_URL = 'config.json';
 
+// 默认配置（用于本地文件打开时）
+const DEFAULT_CONFIG = {
+    "title": "SB33 Tech Pages",
+    "name": "shanbei2033",
+    "displayName": "SB33",
+    "bio": "Vibe coding lover | Blogger",
+    "url": "https://www.sb33.tech",
+    "seo": {
+        "description": "shanbei2033 的个人主页 - Vibe coding lover | Blogger。分享技术博客、开源项目和编程心得。",
+        "keywords": "shanbei2033, SB33, 技术博客, 开源, Vibe Coding, 编程, 开发者",
+        "author": "shanbei2033",
+        "twitter": "@sea60988321"
+    },
+    "socials": [
+        {
+            "name": "X (Twitter)",
+            "icon": "x",
+            "url": "https://x.com/sea60988321",
+            "enabled": true
+        },
+        {
+            "name": "GitHub",
+            "icon": "github",
+            "url": "https://github.com/shanbei2033",
+            "enabled": true
+        },
+        {
+            "name": "Email",
+            "icon": "email",
+            "url": "mailto:lhb363363@foxmail.com",
+            "enabled": true
+        },
+        {
+            "name": "Blog",
+            "icon": "blog",
+            "url": "https://blog.sb33.tech",
+            "enabled": true
+        }
+    ],
+    "hitokoto": {
+        "enabled": true,
+        "mode": "local"
+    },
+    "site": {
+        "startDate": "2024-01-01"
+    },
+    "theme": {
+        "mode": "dark",
+        "primaryColor": "#6366f1",
+        "backgroundColor": "#0f0f0f",
+        "cardBackground": "#1a1a1a",
+        "textColor": "#ffffff"
+    }
+};
+
 // 本地语录库 - 励志英文语录
 const localQuotes = [
     { content: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
@@ -140,44 +195,189 @@ function generateSocialLinks(socials) {
     });
 }
 
+// 更新 SEO Meta 标签
+function updateSEOMeta(config) {
+    const seo = config.seo || {};
+    const name = config.name || 'shanbei2033';
+    const displayName = config.displayName || 'SB33';
+    const bio = config.bio || 'Vibe coding lover | Blogger';
+    const url = config.url || 'https://www.sb33.tech';
+    
+    // 更新基本 meta
+    const description = seo.description || `${name} 的个人主页 - ${bio}`;
+    const keywords = seo.keywords || `${name}, ${displayName}, 技术博客, 开源`;
+    
+    // 更新或创建 meta description
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (metaDesc) metaDesc.content = description;
+    
+    // 更新或创建 meta keywords
+    let metaKeywords = document.querySelector('meta[name="keywords"]');
+    if (metaKeywords) metaKeywords.content = keywords;
+    
+    // 更新或创建 meta author
+    let metaAuthor = document.querySelector('meta[name="author"]');
+    if (metaAuthor) metaAuthor.content = seo.author || name;
+    
+    // 更新 Open Graph 标签
+    const ogTitle = document.querySelector('meta[property="og:title"]');
+    if (ogTitle) ogTitle.content = `${name} - ${config.title}`;
+    
+    const ogDesc = document.querySelector('meta[property="og:description"]');
+    if (ogDesc) ogDesc.content = bio;
+    
+    const ogUrl = document.querySelector('meta[property="og:url"]');
+    if (ogUrl) ogUrl.content = url;
+    
+    const ogProfile = document.querySelector('meta[property="profile:username"]');
+    if (ogProfile) ogProfile.content = name;
+    
+    // 更新 Twitter Card 标签
+    const twitterTitle = document.querySelector('meta[property="twitter:title"]');
+    if (twitterTitle) twitterTitle.content = `${name} - ${config.title}`;
+    
+    const twitterDesc = document.querySelector('meta[property="twitter:description"]');
+    if (twitterDesc) twitterDesc.content = bio;
+    
+    const twitterUrl = document.querySelector('meta[property="twitter:url"]');
+    if (twitterUrl) twitterUrl.content = url;
+    
+    const twitterCreator = document.querySelector('meta[property="twitter:creator"]');
+    if (twitterCreator && seo.twitter) twitterCreator.content = seo.twitter;
+    
+    // 更新 Schema.org 结构化数据
+    updateStructuredData(config);
+}
+
+// 更新 Schema.org 结构化数据
+function updateStructuredData(config) {
+    const name = config.name || 'shanbei2033';
+    const displayName = config.displayName || 'SB33';
+    const bio = config.bio || '';
+    const url = config.url || 'https://www.sb33.tech';
+    
+    // 构建 sameAs 数组
+    const sameAs = [];
+    if (config.socials && Array.isArray(config.socials)) {
+        config.socials.forEach(social => {
+            if (social.enabled && social.url) {
+                sameAs.push(social.url);
+            }
+        });
+    }
+    
+    const structuredData = {
+        "@context": "https://schema.org",
+        "@type": "ProfilePage",
+        "mainEntity": {
+            "@type": "Person",
+            "name": name,
+            "alternateName": displayName,
+            "description": bio,
+            "url": url,
+            "sameAs": sameAs,
+            "jobTitle": "Developer",
+            "knowsAbout": ["Programming", "Web Development", "Open Source", "Vibe Coding"]
+        }
+    };
+    
+    // 查找并更新现有的结构化数据脚本
+    let scriptTag = document.getElementById('schema-data');
+    if (scriptTag) {
+        scriptTag.textContent = JSON.stringify(structuredData);
+    }
+}
+
+// 计算并显示网站运行时间
+function initRuntime(startDate) {
+    const runtimeDisplay = document.getElementById('runtime-display');
+    if (!runtimeDisplay || !startDate) return;
+    
+    const start = new Date(startDate);
+    
+    function updateRuntime() {
+        const now = new Date();
+        const diff = now - start;
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        runtimeDisplay.innerHTML = `
+            <span class="runtime-label">本站已运行</span>
+            <span class="runtime-value">${days}</span><span class="runtime-unit">天</span>
+            <span class="runtime-value">${hours}</span><span class="runtime-unit">小时</span>
+            <span class="runtime-value">${minutes}</span><span class="runtime-unit">分</span>
+            <span class="runtime-value">${seconds}</span><span class="runtime-unit">秒</span>
+        `;
+    }
+    
+    updateRuntime();
+    setInterval(updateRuntime, 1000);
+}
+
+// 应用配置到页面
+function applyConfig(config) {
+    // 设置页面标题
+    const pageTitle = `${config.name || 'shanbei2033'} - ${config.title || 'SB33 Tech Pages'}`;
+    document.title = pageTitle;
+    document.getElementById('page-title').textContent = pageTitle;
+    
+    // 设置主标题
+    document.getElementById('main-title').textContent = config.title || 'SB33 Tech Pages';
+    
+    // 设置个人介绍
+    document.getElementById('user-bio').textContent = config.bio || '';
+    
+    // 更新 SEO Meta 标签
+    updateSEOMeta(config);
+    
+    // 获取一言
+    if (config.hitokoto && config.hitokoto.enabled !== false) {
+        fetchHitokoto();
+    } else {
+        document.getElementById('hitokoto-text').textContent = config.bio || '';
+        document.getElementById('hitokoto-from').style.display = 'none';
+    }
+    
+    // 生成社交链接
+    if (config.socials && Array.isArray(config.socials)) {
+        generateSocialLinks(config.socials);
+    }
+    
+    // 应用主题颜色（如果配置中有）
+    if (config.theme) {
+        applyTheme(config.theme);
+    }
+    
+    // 初始化运行时间显示
+    if (config.site && config.site.startDate) {
+        initRuntime(config.site.startDate);
+    }
+}
+
 // 加载配置并初始化页面
 async function loadConfig() {
+    // 检测是否在本地文件系统打开（file:// 协议）
+    const isFileProtocol = window.location.protocol === 'file:';
+    
+    if (isFileProtocol) {
+        console.log('检测到本地文件打开，使用默认配置');
+        applyConfig(DEFAULT_CONFIG);
+        return;
+    }
+    
     try {
         const response = await fetch(CONFIG_URL);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const config = await response.json();
-        
-        // 设置页面标题
-        document.title = config.title || 'SB33 Tech Pages';
-        document.getElementById('page-title').textContent = config.title || 'SB33 Tech Pages';
-        
-        // 设置主标题
-        document.getElementById('main-title').textContent = config.title || 'SB33 Tech Pages';
-        
-        // 设置个人介绍
-        document.getElementById('user-bio').textContent = config.bio || '';
-        
-        // 获取一言
-        if (config.hitokoto && config.hitokoto.enabled !== false) {
-            fetchHitokoto();
-        } else {
-            document.getElementById('hitokoto-text').textContent = config.bio || '';
-            document.getElementById('hitokoto-from').style.display = 'none';
-        }
-        
-        // 生成社交链接
-        if (config.socials && Array.isArray(config.socials)) {
-            generateSocialLinks(config.socials);
-        }
-        
-        // 应用主题颜色（如果配置中有）
-        if (config.theme) {
-            applyTheme(config.theme);
-        }
-        
+        applyConfig(config);
     } catch (error) {
-        console.error('Failed to load config:', error);
-        // 使用默认配置
-        document.getElementById('hitokoto-text').textContent = '配置文件加载失败，请检查config.json文件是否存在。';
+        console.error('加载配置失败，使用默认配置:', error);
+        applyConfig(DEFAULT_CONFIG);
     }
 }
 
