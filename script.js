@@ -397,29 +397,181 @@ document.addEventListener('DOMContentLoaded', () => {
     loadConfig();
     initTheme();
     initParticleTrail();
+    initBackground();
 });
 
-// 主题切换功能
+// 主题切换功能（已禁用）
 function initTheme() {
-    const themeToggle = document.getElementById('theme-toggle');
-    const sunIcon = document.getElementById('sun-icon');
-    const moonIcon = document.getElementById('moon-icon');
+    // 主题切换功能已移除，保持默认深色模式
+}
+
+// 背景图片管理
+function initBackground() {
+    const bgLockBtn = document.getElementById('bg-lock');
+    const unlockIcon = document.getElementById('unlock-icon');
+    const lockIcon = document.getElementById('lock-icon');
     
-    // 从localStorage读取保存的主题，如果没有则使用config中的默认主题
-    const savedTheme = localStorage.getItem('theme');
-    const body = document.body;
+    // 从localStorage读取锁定状态
+    const isLocked = localStorage.getItem('bgLocked') === 'true';
+    const savedBgUrl = localStorage.getItem('bgImageUrl');
     
-    if (savedTheme === 'light') {
-        body.classList.add('light-mode');
+    // 更新锁定按钮状态
+    updateLockButtonState(isLocked);
+    
+    // 加载背景图片
+    if (isLocked && savedBgUrl) {
+        // 如果已锁定，使用保存的图片
+        setBackgroundImage(savedBgUrl);
+    } else {
+        // 未锁定，随机加载新图片
+        loadRandomBackground();
     }
     
-    // 点击切换主题
-    themeToggle.addEventListener('click', () => {
-        body.classList.toggle('light-mode');
+    // 开始预加载下一张图片
+    preloadNextBackground();
+    
+    // 绑定锁定按钮点击事件
+    bgLockBtn.addEventListener('click', () => {
+        const currentLocked = localStorage.getItem('bgLocked') === 'true';
+        const newLocked = !currentLocked;
         
-        const isLight = body.classList.contains('light-mode');
-        localStorage.setItem('theme', isLight ? 'light' : 'dark');
+        // 保存锁定状态
+        localStorage.setItem('bgLocked', newLocked);
+        
+        // 如果锁定，保存当前图片URL
+        if (newLocked) {
+            const currentBg = document.querySelector('.bg-image-layer');
+            if (currentBg) {
+                localStorage.setItem('bgImageUrl', currentBg.style.backgroundImage.slice(5, -2));
+            }
+        }
+        
+        // 更新按钮状态
+        updateLockButtonState(newLocked);
     });
+}
+
+// 更新锁定按钮状态
+function updateLockButtonState(isLocked) {
+    const bgLockBtn = document.getElementById('bg-lock');
+    const unlockIcon = document.getElementById('unlock-icon');
+    const lockIcon = document.getElementById('lock-icon');
+    
+    if (isLocked) {
+        bgLockBtn.classList.add('locked');
+        unlockIcon.classList.add('hidden');
+        lockIcon.classList.remove('hidden');
+        bgLockBtn.title = '背景已锁定 - 点击解锁';
+    } else {
+        bgLockBtn.classList.remove('locked');
+        unlockIcon.classList.remove('hidden');
+        lockIcon.classList.add('hidden');
+        bgLockBtn.title = '背景未锁定 - 点击锁定当前图片';
+    }
+}
+
+// 世界各地风景图列表（使用 Unsplash 的高质量风景图）
+const landscapeImages = [
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80', // 山景
+    'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=1920&q=80', // 瀑布
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80', // 晨雾森林
+    'https://images.unsplash.com/photo-1447752875215-b2761acb3c5d?w=1920&q=80', // 森林道路
+    'https://images.unsplash.com/photo-1439066615861-d1af74d74000?w=1920&q=80', // 湖泊山景
+    'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1920&q=80', // 绿色山丘
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80', // 阳光森林
+    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&q=80', // 自然风光
+    'https://images.unsplash.com/photo-1426604966848-d7adac402bff?w=1920&q=80', // 山地湖泊
+    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1920&q=80', // 湖边小屋
+    'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=1920&q=80', // 金色田野
+    'https://images.unsplash.com/photo-1439853949127-fa647821eba0?w=1920&q=80', // 海岸风景
+    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80', // 高山云海
+    'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1920&q=80', // 海滩日落
+    'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=80', // 瑞士山水
+    'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=1920&q=80', // 红色峡谷
+    'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80', // 雪山星空
+    'https://images.unsplash.com/photo-1454496522488-7a8e488e8606?w=1920&q=80', // 雪山全景
+    'https://images.unsplash.com/photo-1493246507139-91e8fad9978e?w=1920&q=80', // 阿尔卑斯山
+    'https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?w=1920&q=80', // 田野日落
+    'https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1920&q=80', // 森林河流
+    'https://images.unsplash.com/photo-1490730141103-6cac27abb38f?w=1920&q=80', // 云雾山谷
+    'https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?w=1920&q=80', // 热带雨林
+    'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=1920&q=80', // 瀑布森林
+    'https://images.unsplash.com/photo-1501594907352-04cda38ebc29?w=1920&q=80', // 金门大桥
+    'https://images.unsplash.com/photo-1523712999610-f77fbcfc3843?w=1920&q=80', // 秋日森林
+    'https://images.unsplash.com/photo-1503614472-8c93d56e92ce?w=1920&q=80', // 雪山湖泊
+    'https://images.unsplash.com/photo-1434725039720-aaad6dd3272c?w=1920&q=80', // 金色山脉
+    'https://images.unsplash.com/photo-1465146344425-f00d5f5c8f07?w=1920&q=80', // 极光
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80', // 森林晨雾
+    'https://images.unsplash.com/photo-1508739773434-c26b3d09e071?w=1920&q=80', // 沙漠
+    'https://images.unsplash.com/photo-1473496169904-658ba7c44d8a?w=1920&q=80', // 海边悬崖
+    'https://images.unsplash.com/photo-1489493887464-892be6d1daae?w=1920&q=80', // 梯田
+    'https://images.unsplash.com/photo-1501785888041-af3ef285b470?w=1920&q=80', // 湖光山色
+    'https://images.unsplash.com/photo-1465188162913-8fb5709d6d57?w=1920&q=80', // 星空山脉
+    'https://images.unsplash.com/photo-1532274402911-5a369e4c4bb5?w=1920&q=80', // 草原
+    'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80', // 阿尔卑斯
+    'https://images.unsplash.com/photo-1434725039720-aaad6dd3272c?w=1920&q=80', // 峡谷
+    'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80', // 地球星空
+    'https://images.unsplash.com/photo-1446776811953-b23d57bd21aa?w=1920&q=80', // 太空地球
+    'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80', // 森林
+    'https://images.unsplash.com/photo-1518098268026-4e89f1a2cd8e?w=1920&q=80', // 日落
+    'https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=1920&q=80', // 瀑布
+    'https://images.unsplash.com/photo-1469474968028-56623f02e42e?w=1920&q=80', // 山谷
+    'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80', // 森林阳光
+    'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80', // 山脉
+    'https://images.unsplash.com/photo-1505118380757-91f5f5632de0?w=1920&q=80', // 海岸
+    'https://images.unsplash.com/photo-1476514525535-07fb3b4ae5f1?w=1920&q=80', // 山水
+    'https://images.unsplash.com/photo-1494500764479-0c8f2919a3d8?w=1920&q=80'  // 峡谷
+];
+
+// 加载随机背景图片
+function loadRandomBackground() {
+    // 从风景图列表中随机选择
+    const randomIndex = Math.floor(Math.random() * landscapeImages.length);
+    const imageUrl = landscapeImages[randomIndex];
+    
+    setBackgroundImage(imageUrl);
+}
+
+// 预加载下一张背景图片
+let nextBgUrl = null;
+
+function preloadNextBackground() {
+    const randomIndex = Math.floor(Math.random() * landscapeImages.length);
+    nextBgUrl = landscapeImages[randomIndex];
+    const img = new Image();
+    img.src = nextBgUrl;
+}
+
+// 设置背景图片
+function setBackgroundImage(url) {
+    // 移除旧的背景层
+    const oldBg = document.querySelector('.bg-image-layer');
+    if (oldBg) {
+        oldBg.remove();
+    }
+    
+    // 创建新的背景层
+    const bgLayer = document.createElement('div');
+    bgLayer.className = 'bg-image-layer';
+    bgLayer.style.backgroundImage = `url('${url}')`;
+    bgLayer.style.opacity = '0';
+    
+    // 插入到body的最开始
+    document.body.insertBefore(bgLayer, document.body.firstChild);
+    
+    // 图片加载完成后淡入
+    const img = new Image();
+    img.onload = () => {
+        bgLayer.style.opacity = '1';
+        // 预加载下一张图片
+        setTimeout(preloadNextBackground, 1000);
+    };
+    img.onerror = () => {
+        // 如果加载失败，尝试加载另一张
+        console.log('背景图片加载失败，尝试加载其他图片');
+        loadRandomBackground();
+    };
+    img.src = url;
 }
 
 // 粒子轨迹效果
