@@ -346,6 +346,9 @@ function applyConfig(config) {
         generateSocialLinks(config.socials);
     }
     
+    // 加载GitHub贡献图
+    loadGitHubContributions(config.name || 'shanbei2033');
+    
     // 应用主题颜色（如果配置中有）
     if (config.theme) {
         applyTheme(config.theme);
@@ -501,4 +504,53 @@ function initParticleTrail() {
             particle.remove();
         }, 800);
     }
+}
+
+// 加载GitHub贡献图
+function loadGitHubContributions(username) {
+    const contributionsImg = document.getElementById('github-contributions');
+    const loadingElement = document.getElementById('contributions-loading');
+    const usernameElement = document.querySelector('.contributions-username');
+    
+    if (!contributionsImg || !username) return;
+    
+    // 更新用户名显示
+    if (usernameElement) {
+        usernameElement.textContent = username;
+    }
+    
+    // 更新GitHub链接
+    const contributionsLink = document.querySelector('.contributions-link');
+    if (contributionsLink) {
+        contributionsLink.href = `https://github.com/${username}`;
+    }
+    
+    // 使用 ghchart.rshah.org 服务生成贡献图
+    // 该服务返回SVG格式的贡献图
+    const chartUrl = `https://ghchart.rshah.org/${username}`;
+    
+    contributionsImg.src = chartUrl;
+    contributionsImg.style.opacity = '0';
+    
+    // 图片加载完成后显示图片并隐藏加载动画
+    contributionsImg.onload = function() {
+        if (loadingElement) {
+            loadingElement.style.display = 'none';
+        }
+        contributionsImg.style.display = 'block';
+        contributionsImg.style.transition = 'opacity 0.5s ease';
+        contributionsImg.style.opacity = '1';
+    };
+    
+    // 如果加载失败，显示错误信息
+    contributionsImg.onerror = function() {
+        if (loadingElement) {
+            loadingElement.innerHTML = `
+                <span class="contributions-loading-text" style="color: #ef4444;">
+                    加载失败，点击前往 GitHub
+                </span>
+            `;
+        }
+        console.log('GitHub贡献图加载失败，可能是用户名不存在或网络问题');
+    };
 }
