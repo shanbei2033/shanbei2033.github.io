@@ -1,5 +1,9 @@
 {
-  "title": "SB33.tech Pages",
+  "pageTitle": "shanbei2033 - SB33.tech Pages",
+  "heading": {
+    "mainTitle": "SB33.tech Pages",
+    "subTitle": "Blogger"
+  },
   "name": "shanbei2033",
   "displayName": "SB33",
   "bio": "Vibe coding lover | Blogger",
@@ -9,6 +13,10 @@
     "keywords": "shanbei2033, SB33, 技术博客, 开源, Vibe Coding, 编程, 开发者",
     "author": "shanbei2033",
     "twitter": "@sea60988321"
+  },
+  "github": {
+    "username": "shanbei2033",
+    "showContributions": true
   },
   "socials": [
     {
@@ -44,7 +52,7 @@
   ],
   "hitokoto": {
     "enabled": true,
-    "mode": "local"
+    "customQuotes": []
   },
   "site": {
     "startDate": "2026-02-08"

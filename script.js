@@ -3,7 +3,11 @@ const CONFIG_URL = 'config.json';
 
 // 默认配置（用于本地文件打开时）
 const DEFAULT_CONFIG = {
-    "title": "SB33 Tech Pages",
+    "pageTitle": "shanbei2033 - SB33.tech Pages",
+    "heading": {
+        "mainTitle": "SB33.tech Pages",
+        "subTitle": "Blogger"
+    },
     "name": "shanbei2033",
     "displayName": "SB33",
     "bio": "Vibe coding lover | Blogger",
@@ -13,6 +17,10 @@ const DEFAULT_CONFIG = {
         "keywords": "shanbei2033, SB33, 技术博客, 开源, Vibe Coding, 编程, 开发者",
         "author": "shanbei2033",
         "twitter": "@sea60988321"
+    },
+    "github": {
+        "username": "shanbei2033",
+        "showContributions": true
     },
     "socials": [
         {
@@ -42,7 +50,7 @@ const DEFAULT_CONFIG = {
     ],
     "hitokoto": {
         "enabled": true,
-        "mode": "local"
+        "customQuotes": []
     },
     "site": {
         "startDate": "2024-01-01"
@@ -56,39 +64,8 @@ const DEFAULT_CONFIG = {
     }
 };
 
-// 本地语录库 - 励志英文语录
-const localQuotes = [
-    { content: "The only way to do great work is to love what you do.", author: "Steve Jobs" },
-    { content: "Stay hungry, stay foolish.", author: "Steve Jobs" },
-    { content: "Your time is limited, don't waste it living someone else's life.", author: "Steve Jobs" },
-    { content: "Innovation distinguishes between a leader and a follower.", author: "Steve Jobs" },
-    { content: "Believe you can and you're halfway there.", author: "Theodore Roosevelt" },
-    { content: "The future belongs to those who believe in the beauty of their dreams.", author: "Eleanor Roosevelt" },
-    { content: "Success is not final, failure is not fatal: it is the courage to continue that counts.", author: "Winston Churchill" },
-    { content: "The best time to plant a tree was 20 years ago. The second best time is now.", author: "Chinese Proverb" },
-    { content: "Don't watch the clock; do what it does. Keep going.", author: "Sam Levenson" },
-    { content: "Everything you've ever wanted is on the other side of fear.", author: "George Addair" },
-    { content: "Hardships often prepare ordinary people for an extraordinary destiny.", author: "C.S. Lewis" },
-    { content: "The only limit to our realization of tomorrow will be our doubts of today.", author: "Franklin D. Roosevelt" },
-    { content: "Do what you can, with what you have, where you are.", author: "Theodore Roosevelt" },
-    { content: "Start where you are. Use what you have. Do what you can.", author: "Arthur Ashe" },
-    { content: "Fall seven times, stand up eight.", author: "Japanese Proverb" },
-    { content: "It does not matter how slowly you go as long as you do not stop.", author: "Confucius" },
-    { content: "Everything is hard before it is easy.", author: "Goethe" },
-    { content: "The man who moves a mountain begins by carrying away small stones.", author: "Confucius" },
-    { content: "Success is walking from failure to failure with no loss of enthusiasm.", author: "Winston Churchill" },
-    { content: "The way to get started is to quit talking and begin doing.", author: "Walt Disney" },
-    { content: "If you can dream it, you can do it.", author: "Walt Disney" },
-    { content: "All our dreams can come true, if we have the courage to pursue them.", author: "Walt Disney" },
-    { content: "It's not whether you get knocked down, it's whether you get up.", author: "Vince Lombardi" },
-    { content: "The difference between the impossible and the possible lies in a person's determination.", author: "Tommy Lasorda" },
-    { content: "It always seems impossible until it's done.", author: "Nelson Mandela" },
-    { content: "The greatest glory in living lies not in never falling, but in rising every time we fall.", author: "Nelson Mandela" },
-    { content: "Act as if what you do makes a difference. It does.", author: "William James" },
-    { content: "What lies behind us and what lies before us are tiny matters compared to what lies within us.", author: "Ralph Waldo Emerson" },
-    { content: "Do not wait to strike till the iron is hot, but make it hot by striking.", author: "William Butler Yeats" },
-    { content: "Whether you think you can or you think you can't, you're right.", author: "Henry Ford" }
-];
+// 本地语录库 - 从 quotes.json 加载
+let localQuotes = [];
 
 // SVG图标定义
 const icons = {
@@ -115,6 +92,39 @@ const icons = {
 
 // 打字机效果变量
 let typewriterInterval = null;
+
+// 从 quotes.json 加载语录
+async function loadQuotesFromFile() {
+    try {
+        const response = await fetch('quotes.json');
+        if (response.ok) {
+            const quotes = await response.json();
+            if (Array.isArray(quotes) && quotes.length > 0) {
+                localQuotes = quotes.map(quote => ({
+                    content: quote.content || quote.text || '',
+                    author: quote.author || quote.from || 'Unknown'
+                })).filter(quote => quote.content);
+            }
+        } else {
+            console.log('quotes.json 加载失败，使用空语录库');
+        }
+    } catch (error) {
+        console.log('加载 quotes.json 失败:', error);
+    }
+}
+
+// 合并自定义语录到本地语录库
+function mergeCustomQuotes(customQuotes) {
+    if (!Array.isArray(customQuotes) || customQuotes.length === 0) return;
+    
+    // 将自定义语录添加到本地语录数组开头
+    const formattedQuotes = customQuotes.map(quote => ({
+        content: quote.content || quote.text || '',
+        author: quote.author || quote.from || 'Unknown'
+    })).filter(quote => quote.content);
+    
+    localQuotes = [...formattedQuotes, ...localQuotes];
+}
 
 // 打字机效果函数
 function typeWriterEffect(element, text, speed = 50) {
@@ -317,28 +327,69 @@ function initRuntime(startDate) {
     setInterval(updateRuntime, 1000);
 }
 
+// 骨架屏管理
+let skeletonMinDisplayTime = 800; // 最小显示时间（毫秒）
+let skeletonStartTime = Date.now();
+let skeletonHidden = false;
+
+// 隐藏骨架屏
+function hideSkeletonScreen() {
+    if (skeletonHidden) return;
+    
+    const skeleton = document.getElementById('skeleton-screen');
+    if (!skeleton) return;
+    
+    const elapsedTime = Date.now() - skeletonStartTime;
+    const remainingTime = Math.max(0, skeletonMinDisplayTime - elapsedTime);
+    
+    // 确保至少显示最小时间，让用户看到效果
+    setTimeout(() => {
+        skeleton.classList.add('hidden');
+        skeletonHidden = true;
+        // 完全移除元素
+        setTimeout(() => {
+            skeleton.style.display = 'none';
+        }, 500);
+    }, remainingTime);
+}
+
 // 应用配置到页面
 function applyConfig(config) {
-    // 设置页面标题
-    const pageTitle = `${config.name || 'shanbei2033'} - ${config.title || 'SB33 Tech Pages'}`;
+    // 设置页面标题（浏览器标签页）
+    const pageTitle = config.pageTitle || `${config.name || 'shanbei2033'} - ${config.heading?.mainTitle || 'SB33 Tech Pages'}`;
     document.title = pageTitle;
     document.getElementById('page-title').textContent = pageTitle;
     
-    // 设置主标题
-    document.getElementById('main-title').textContent = config.title || 'SB33 Tech Pages';
+    // 设置主标题和副标题
+    const mainTitle = config.heading?.mainTitle || config.title || 'SB33 Tech Pages';
+    const subTitle = config.heading?.subTitle || '';
+    document.getElementById('main-title').textContent = mainTitle;
     
-    // 设置个人介绍
-    document.getElementById('user-bio').textContent = config.bio || '';
+    // 设置个人介绍（如果有副标题，拼接显示）
+    const bioText = config.bio || '';
+    const displayBio = subTitle ? `${subTitle}${bioText ? ' | ' + bioText : ''}` : bioText;
+    document.getElementById('user-bio').textContent = displayBio;
     
     // 更新 SEO Meta 标签
     updateSEOMeta(config);
     
     // 获取一言
-    if (config.hitokoto && config.hitokoto.enabled !== false) {
-        fetchHitokoto();
+    const hitokotoEnabled = config.hitokoto?.enabled !== false;
+    const hitokotoWrapper = document.querySelector('.hitokoto-wrapper');
+    
+    if (hitokotoEnabled) {
+        // 从 quotes.json 加载语录
+        loadQuotesFromFile().then(() => {
+            // 如果有自定义语录，合并到本地语录中
+            if (config.hitokoto?.customQuotes && config.hitokoto.customQuotes.length > 0) {
+                mergeCustomQuotes(config.hitokoto.customQuotes);
+            }
+            fetchHitokoto();
+        });
+        hitokotoWrapper.style.display = 'block';
     } else {
-        document.getElementById('hitokoto-text').textContent = config.bio || '';
-        document.getElementById('hitokoto-from').style.display = 'none';
+        // 隐藏一言区域
+        hitokotoWrapper.style.display = 'none';
     }
     
     // 生成社交链接
@@ -347,7 +398,9 @@ function applyConfig(config) {
     }
     
     // 加载GitHub贡献图
-    loadGitHubContributions(config.name || 'shanbei2033');
+    const githubUsername = config.github?.username || config.name || 'shanbei2033';
+    const showContributions = config.github?.showContributions !== false;
+    loadGitHubContributions(githubUsername, showContributions);
     
     // 应用主题颜色（如果配置中有）
     if (config.theme) {
@@ -358,6 +411,10 @@ function applyConfig(config) {
     if (config.site && config.site.startDate) {
         initRuntime(config.site.startDate);
     }
+    
+    // 标记配置加载完成
+    configLoaded = true;
+    checkAllLoaded();
 }
 
 // 加载配置并初始化页面
@@ -394,10 +451,22 @@ function applyTheme(theme) {
 
 // 初始化主题
 document.addEventListener('DOMContentLoaded', () => {
+    // 记录骨架屏开始显示时间
+    skeletonStartTime = Date.now();
+    
     loadConfig();
     initTheme();
     initParticleTrail();
     initBackground();
+    initTouchGestures();
+    
+    // 设置最大等待时间（5秒），防止骨架屏一直显示
+    setTimeout(() => {
+        if (!skeletonHidden) {
+            console.log('骨架屏超时，强制隐藏');
+            hideSkeletonScreen();
+        }
+    }, 5000);
 });
 
 // 主题切换功能（已禁用）
@@ -542,6 +611,17 @@ function preloadNextBackground() {
     img.src = nextBgUrl;
 }
 
+// 背景图片加载状态
+let bgImageLoaded = false;
+let configLoaded = false;
+
+// 检查是否所有内容都加载完成
+function checkAllLoaded() {
+    if (bgImageLoaded && configLoaded) {
+        hideSkeletonScreen();
+    }
+}
+
 // 设置背景图片
 function setBackgroundImage(url) {
     // 移除旧的背景层
@@ -563,6 +643,8 @@ function setBackgroundImage(url) {
     const img = new Image();
     img.onload = () => {
         bgLayer.style.opacity = '1';
+        bgImageLoaded = true;
+        checkAllLoaded();
         // 预加载下一张图片
         setTimeout(preloadNextBackground, 1000);
     };
@@ -658,11 +740,263 @@ function initParticleTrail() {
     }
 }
 
+// 触摸手势管理
+function initTouchGestures() {
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchEndX = 0;
+    let touchEndY = 0;
+    let touchStartTime = 0;
+    let lastTapTime = 0;
+    let isSwiping = false;
+    
+    const container = document.body;
+    const bgLockBtn = document.getElementById('bg-lock');
+    
+    // 触摸开始
+    container.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+        touchStartY = e.changedTouches[0].screenY;
+        touchStartTime = Date.now();
+        isSwiping = false;
+    }, { passive: true });
+    
+    // 触摸移动 - 检测滑动
+    container.addEventListener('touchmove', (e) => {
+        if (!touchStartX || !touchStartY) return;
+        
+        const touchX = e.changedTouches[0].screenX;
+        const touchY = e.changedTouches[0].screenY;
+        const diffX = touchStartX - touchX;
+        const diffY = touchStartY - touchY;
+        
+        // 如果水平滑动距离大于垂直滑动，认为是水平滑动
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 30) {
+            isSwiping = true;
+        }
+    }, { passive: true });
+    
+    // 触摸结束
+    container.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        touchEndY = e.changedTouches[0].screenY;
+        const touchEndTime = Date.now();
+        const touchDuration = touchEndTime - touchStartTime;
+        
+        handleSwipe(e);
+        handleDoubleTap(touchEndTime);
+        
+        // 重置
+        touchStartX = 0;
+        touchStartY = 0;
+    }, { passive: true });
+    
+    // 处理滑动
+    function handleSwipe(e) {
+        const swipeThreshold = 80; // 滑动阈值
+        const diffX = touchStartX - touchEndX;
+        const diffY = touchStartY - touchEndY;
+        
+        // 检查是否在锁定按钮上滑动
+        if (e && e.target && (e.target.closest('#bg-lock') || e.target.closest('.bg-lock'))) {
+            return;
+        }
+        
+        // 水平滑动切换背景
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > swipeThreshold) {
+            const isLocked = localStorage.getItem('bgLocked') === 'true';
+            
+            if (!isLocked) {
+                if (diffX > 0) {
+                    // 向左滑动 - 下一张
+                    showSwipeFeedback('left');
+                    loadRandomBackground();
+                } else {
+                    // 向右滑动 - 上一张（通过预加载实现）
+                    showSwipeFeedback('right');
+                    if (nextBgUrl) {
+                        setBackgroundImage(nextBgUrl);
+                    } else {
+                        loadRandomBackground();
+                    }
+                }
+            } else {
+                // 如果已锁定，显示提示
+                showToast('背景已锁定，无法切换');
+            }
+        }
+    }
+    
+    // 处理双击
+    function handleDoubleTap(touchTime) {
+        const doubleTapDelay = 300; // 双击间隔
+        
+        if (touchTime - lastTapTime < doubleTapDelay) {
+            // 双击检测到
+            const isLocked = localStorage.getItem('bgLocked') === 'true';
+            
+            if (!isLocked) {
+                showToast('刷新背景...');
+                loadRandomBackground();
+            } else {
+                showToast('背景已锁定');
+            }
+        }
+        
+        lastTapTime = touchTime;
+    }
+    
+    // 长按锁定按钮显示菜单
+    let longPressTimer;
+    bgLockBtn.addEventListener('touchstart', (e) => {
+        longPressTimer = setTimeout(() => {
+            showLockMenu();
+        }, 600);
+    }, { passive: true });
+    
+    bgLockBtn.addEventListener('touchend', () => {
+        clearTimeout(longPressTimer);
+    }, { passive: true });
+    
+    bgLockBtn.addEventListener('touchmove', () => {
+        clearTimeout(longPressTimer);
+    }, { passive: true });
+}
+
+// 显示滑动反馈
+function showSwipeFeedback(direction) {
+    const feedback = document.createElement('div');
+    feedback.className = `swipe-feedback swipe-${direction}`;
+    feedback.innerHTML = direction === 'left' ? '→' : '←';
+    document.body.appendChild(feedback);
+    
+    // 触发动画
+    requestAnimationFrame(() => {
+        feedback.classList.add('show');
+    });
+    
+    // 移除
+    setTimeout(() => {
+        feedback.remove();
+    }, 500);
+}
+
+// 显示Toast提示
+function showToast(message) {
+    // 移除已有的toast
+    const existingToast = document.querySelector('.toast-message');
+    if (existingToast) {
+        existingToast.remove();
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = 'toast-message';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+    
+    // 触发动画
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+    
+    // 自动隐藏
+    setTimeout(() => {
+        toast.classList.add('hide');
+        setTimeout(() => toast.remove(), 300);
+    }, 2000);
+}
+
+// 显示锁定菜单
+function showLockMenu() {
+    const isLocked = localStorage.getItem('bgLocked') === 'true';
+    
+    // 创建菜单
+    const menu = document.createElement('div');
+    menu.className = 'touch-menu';
+    menu.innerHTML = `
+        <div class="touch-menu-item" data-action="toggle-lock">
+            <span class="menu-icon">${isLocked ? '🔓' : '🔒'}</span>
+            <span>${isLocked ? '解锁背景' : '锁定背景'}</span>
+        </div>
+        <div class="touch-menu-item" data-action="refresh-bg">
+            <span class="menu-icon">🔄</span>
+            <span>刷新背景</span>
+        </div>
+        <div class="touch-menu-item" data-action="copy-url">
+            <span class="menu-icon">📋</span>
+            <span>复制图片链接</span>
+        </div>
+    `;
+    
+    document.body.appendChild(menu);
+    
+    // 点击外部关闭
+    const closeMenu = (e) => {
+        if (!menu.contains(e.target)) {
+            menu.remove();
+            document.removeEventListener('touchstart', closeMenu);
+            document.removeEventListener('click', closeMenu);
+        }
+    };
+    
+    setTimeout(() => {
+        document.addEventListener('touchstart', closeMenu);
+        document.addEventListener('click', closeMenu);
+    }, 100);
+    
+    // 菜单项点击事件
+    menu.querySelectorAll('.touch-menu-item').forEach(item => {
+        item.addEventListener('click', () => {
+            const action = item.dataset.action;
+            
+            switch(action) {
+                case 'toggle-lock':
+                    document.getElementById('bg-lock').click();
+                    showToast(isLocked ? '背景已解锁' : '背景已锁定');
+                    break;
+                case 'refresh-bg':
+                    if (!isLocked) {
+                        loadRandomBackground();
+                        showToast('已刷新背景');
+                    } else {
+                        showToast('背景已锁定，无法刷新');
+                    }
+                    break;
+                case 'copy-url':
+                    const currentBg = document.querySelector('.bg-image-layer');
+                    if (currentBg) {
+                        const url = currentBg.style.backgroundImage.slice(5, -2);
+                        navigator.clipboard.writeText(url).then(() => {
+                            showToast('图片链接已复制');
+                        });
+                    }
+                    break;
+            }
+            
+            menu.remove();
+        });
+    });
+}
+
 // 加载GitHub贡献图
-function loadGitHubContributions(username) {
+function loadGitHubContributions(username, showContributions = true) {
+    const contributionsSection = document.querySelector('.contributions-section');
     const contributionsImg = document.getElementById('github-contributions');
     const loadingElement = document.getElementById('contributions-loading');
     const usernameElement = document.querySelector('.contributions-username');
+    
+    // 如果不显示贡献图，隐藏整个区域
+    if (!showContributions) {
+        if (contributionsSection) {
+            contributionsSection.style.display = 'none';
+        }
+        return;
+    }
+    
+    // 显示贡献图区域
+    if (contributionsSection) {
+        contributionsSection.style.display = 'block';
+    }
     
     if (!contributionsImg || !username) return;
     
